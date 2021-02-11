@@ -108,8 +108,8 @@ detectMissing <- function (x, y) {
   }
 }
 
-cleanCell <- function (c) {
-  as.character(c) %>% str_extract(">.+<") %>%
+cleanCell <- function (x) {
+  as.character(x) %>% str_extract(">.+<") %>%
     str_remove_all(">|<") %>% str_squish() %>%
     str_replace_all("&amp;", "&")
 }
@@ -140,16 +140,16 @@ checkTicker <- function (x, y) {
   ))
   if ("try-error" %in% class(t)) {
     y$sendCustomMessage(type = "alert",
-                        message = "The ticker does not exist")
+                        message = "No data exists for this ticker")
     return(F)
   } else
     return(T)
 }
 
 footYahoo <- function (x) {
-  p("If you cannot find the ticker you want, try searching on",
+  p("If you cannot find a ticker, try",
     a(
-      "Yahoo",
+      "Yahoo Search",
       href = paste0("https://search.yahoo.com/search?p=", x$ticker)
     ))
 }
@@ -169,22 +169,31 @@ tickerData <- function (x) {
     left_join(df, by = "date") %>% na.locf()
 }
 
-arimaPlot <- function (x, dt, f) {
+checkData <- function (x, y, z) {
+  if (nrow(x[date %in% y]) == 0) {
+    z$sendCustomMessage(type = "alert",
+                        message = "No data exists for this ticker during the training period")
+    return(F)
+  } else
+    return(T)
+}
+
+arimaPlot <- function (x, y, z) {
   training <- (x$date - as.numeric(x$train)):x$date
   ts1 <-
-    data.table(Date = x$date, rep(dt[date == x$date]$close, 3) %>% t()) %>%
+    data.table(Date = x$date, rep(y[date == x$date]$close, 3) %>% t()) %>%
     rbind(
       data.table(
         Date = x$date + 1:x$horizon,
-        V1 = as.numeric(f$mean) %>% exp(),
-        V2 = as.numeric(f$lower) %>% exp(),
-        V3 = as.numeric(f$upper) %>% exp()
+        V1 = as.numeric(z$mean) %>% exp(),
+        V2 = as.numeric(z$lower) %>% exp(),
+        V3 = as.numeric(z$upper) %>% exp()
       )
     )
   colnames(ts1)[-1] <-
     c("Price", "Lower 95% CI", "Upper 95% CI")
-  ts2 <- tail(dt[date <= x$date], nrow(ts1)) %>%
-    rbind(dt[date %in% ts1$Date]) %>%
+  ts2 <- tail(y[date <= x$date], nrow(ts1)) %>%
+    rbind(y[date %in% ts1$Date]) %>%
     distinct() %>% select(Date = date, Price = close)
   ggplot() +
     geom_ribbon(
@@ -197,12 +206,30 @@ arimaPlot <- function (x, dt, f) {
     geom_line(aes(Date, Price), ts2)
 }
 
-arimaCalc <- function (f) {
-  div(
-    p("Average price"),
-    p("Quantity"),
-    p("Crunch")
-  )
+
+arimaMod <- function(x, y) {
+  div(class = "about-tab",
+      div(
+        class = "model-info",
+        p(
+          "AutoARIMA is an algorithm written by",
+          a("Rob J. Hyndman", href = "https://robjhyndman.com"),
+          "that automatically fits an",
+          em("autoregressive integrated moving average"),
+          "(ARIMA) model to a time series. To explain the price evolution of",
+          x$ticker,
+          "between",
+          format(x$date - as.numeric(x$train), "%B %e, %Y,"),
+          "and",
+          format(x$date, "%B %e, %Y,"),
+          "the algorithm fitted a model",
+          paste0(as.character(y) %>% str_squish(), ".")
+        ),
+        a(href = "https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average",
+          shiny::icon("question-circle"),
+          "What does this mean?")
+      ),
+      div(class = "model-info"))
 }
 
-# TO DO: pl calculator, info author, disclaimer, model details tab + info arima, zoomable plot
+# TO DO: pl calculator, info author, disclaimer, zoomable plot

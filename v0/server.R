@@ -51,18 +51,22 @@ server <- function (input, output, session) {
                 price <- tickerData(input)
                 training <-
                     (input$date - as.numeric(input$train)):input$date
-                fit <- log(price[date %in% training]$close) %>%
-                    auto.arima(stepwise = F, approximation = F)
-                cast <- forecast(fit, h = input$horizon, level = 95)
-                castPlot <- arimaPlot(input, price, cast) %>%
-                    ggplotly(dynamicTicks = T) %>% layout(font = plotFont)
-                castCalc <- arimaCalc(cast)
-                result$arima <- tabBox(
-                    title = toupper(input$ticker),
-                    tabPanel("Forecast", castPlot),
-                    tabPanel("P/L Calculator", castCalc),
-                    width = 12
-                )
+                if (checkData(price, training, session)) {
+                    fit <- log(price[date %in% training]$close) %>%
+                        auto.arima(stepwise = F,
+                                   approximation = F)
+                    cast <-
+                        forecast(fit, h = input$horizon, level = 95)
+                    castPlot <- arimaPlot(input, price, cast) %>%
+                        ggplotly(dynamicTicks = T) %>% layout(font = plotFont)
+                    castMod <- arimaMod(input, fit)
+                    result$arima <- tabBox(
+                        title = toupper(input$ticker),
+                        tabPanel("Forecast", castPlot),
+                        tabPanel("About", castMod),
+                        width = 12
+                    )
+                }
             }
         }
     })

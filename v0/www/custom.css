@@ -21,3 +21,12 @@ body {
   padding-top: 5%;
   padding-left: 10%;
 }
+
+.about-tab {
+  display: flex;
+}
+
+.model-info {
+  width: 50%;
+  margin: 2%;
+}
