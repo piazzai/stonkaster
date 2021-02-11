@@ -1,33 +1,44 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+header <- dashboardHeader(title = site$title)
 
-library(shiny)
+menuArima <- menuItem(
+    "AutoARIMA",
+    icon = icon("line-chart"),
+    textInput("ticker", "Ticker", placeholder = "e.g. GME"),
+    dateInput(
+        "date",
+        "Forecast from",
+        dateDefault(),
+        dateMin(),
+        dateMax(),
+        "MM d, yyyy",
+        weekstart = 1,
+        daysofweekdisabled = c(0, 6)
+    ),
+    selectizeInput("train", "Training period", trainMenu()),
+    selectizeInput("horizon", "Time horizon", horizonMenu()),
+    div(
+        class = "action",
+        actionButton("arima", "Forecast"),
+        actionButton("reset", "Reset")
+    ),
+    startExpanded = T
+)
 
-# Define UI for application that draws a histogram
-shinyUI(fluidPage(
+sidebar <-
+    dashboardSidebar(sidebarMenu(menuArima), sidebarSitePanel())
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+body <-
+    dashboardBody(
+        fluidRow(
+            valueBoxOutput("boxTrain", width = 6),
+            valueBoxOutput("boxHorizon", width = 6)
         ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-            plotOutput("distPlot")
+        uiOutput("boxResult"),
+        tags$head(
+            tags$link(rel = "stylesheet", type = "text/css", href = googleFont()),
+            tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
+            tags$script(src = "message-handler.js")
         )
     )
-))
+
+ui <- dashboardPage(header, sidebar, body)
