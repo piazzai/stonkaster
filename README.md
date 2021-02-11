@@ -1,2 +1,3 @@
 # stonkaster
-Shiny app for financial forecasting
+
+Under construction.
