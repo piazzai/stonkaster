@@ -3,7 +3,7 @@ header <- dashboardHeader(title = site$title)
 menuArima <- menuItem(
     "AutoARIMA",
     icon = icon("line-chart"),
-    textInput("ticker", "Ticker", placeholder = "e.g. GME"),
+    textInput("ticker", "Ticker", placeholder = "Start typing..."),
     dateInput(
         "date",
         "Forecast from",
@@ -19,7 +19,7 @@ menuArima <- menuItem(
     div(
         class = "action",
         actionButton("arima", "Forecast"),
-        actionButton("reset", "Reset")
+        actionButton("reset", "Clear")
     ),
     startExpanded = T
 )
@@ -33,7 +33,8 @@ body <-
             valueBoxOutput("boxTrain", width = 6),
             valueBoxOutput("boxHorizon", width = 6)
         ),
-        uiOutput("boxResult"),
+        fluidRow(uiOutput("boxResult")),
+        fluidRow(uiOutput("boxYahoo")),
         tags$head(
             tags$link(rel = "stylesheet", type = "text/css", href = googleFont()),
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),

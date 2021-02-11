@@ -4,6 +4,8 @@ library(shinyjs)
 library(dplyr)
 library(data.table)
 library(showtext)
+library(rvest)
+library(stringr)
 library(quantmod)
 library(forecast)
 library(ggplot2)
@@ -87,22 +89,69 @@ horizonMenu <- function () {
 
 detectMissing <- function (x, y) {
   if (x$ticker == "") {
-    y$sendCustomMessage(type = "testmessage",
+    y$sendCustomMessage(type = "alert",
                         message = "You must provide a ticker")
     return(T)
   } else {
     if (x$train == "") {
-      y$sendCustomMessage(type = "testmessage",
+      y$sendCustomMessage(type = "alert",
                           message = "You must provide a training period")
       return(T)
     } else {
       if (x$horizon == "") {
-        y$sendCustomMessage(type = "testmessage",
+        y$sendCustomMessage(type = "alert",
                             message = "You must provide a time horizon")
         return(T)
-      } else return(F)
+      } else
+        return(F)
     }
   }
+}
+
+cleanCell <- function (c) {
+  as.character(c) %>% str_extract(">.+<") %>%
+    str_remove_all(">|<") %>% str_squish() %>%
+    str_replace_all("&amp;", "&")
+}
+
+matchTicker <- function (x) {
+  tr <- paste0("https://finance.yahoo.com/lookup?s=", x$ticker) %>%
+    read_html() %>% html_nodes("tr")
+  td <- html_nodes(tr[-1], "td")
+  c1 <- td[grepl("col0", td)] %>% html_nodes("a") %>%
+    html_attr("data-symbol")
+  c2 <- td[grepl("col1", td)] %>% cleanCell()
+  c3 <- td[grepl("col4", td)] %>% cleanCell()
+  c4 <- td[grepl("col5", td)] %>% cleanCell()
+  data.table(
+    Ticker = c1,
+    Name = c2,
+    Type = c3,
+    Exchange = c4
+  )
+}
+
+checkTicker <- function (x, y) {
+  t <- try(getSymbols(
+    x$ticker,
+    from = as.Date("1970-01-01"),
+    to = Sys.Date(),
+    auto.assign = F
+  ))
+  if ("try-error" %in% class(t)) {
+    y$sendCustomMessage(type = "alert",
+                        message = "The ticker does not exist")
+    return(F)
+  } else
+    return(T)
+}
+
+footYahoo <- function (x) {
+  p("If you cannot find the ticker you want, try searching on",
+    a(
+      "Yahoo",
+      href = paste0("https://search.yahoo.com/search?p=", x$ticker)
+    ))
 }
 
 tickerData <- function (x) {
@@ -121,9 +170,9 @@ tickerData <- function (x) {
 }
 
 arimaPlot <- function (x, dt, f) {
-  training <- (input$date - as.numeric(input$train)):input$date
+  training <- (x$date - as.numeric(x$train)):x$date
   ts1 <-
-    data.table(Date = x$date, rep(price[date == x$date]$close, 3) %>% t()) %>%
+    data.table(Date = x$date, rep(dt[date == x$date]$close, 3) %>% t()) %>%
     rbind(
       data.table(
         Date = x$date + 1:x$horizon,
@@ -156,4 +205,4 @@ arimaCalc <- function (f) {
   )
 }
 
-# TO DO: info arima, info author, disclaimer, model details tab
+# TO DO: pl calculator, info author, disclaimer, model details tab + info arima, zoomable plot

@@ -12,10 +12,6 @@ body {
   font-size: 1.5rem;
 }
 
-#searchBtn {
-  margin: 0;
-}
-
 .action {
   padding: 5%;
   display: flex;

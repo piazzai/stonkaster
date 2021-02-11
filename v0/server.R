@@ -10,13 +10,28 @@ server <- function (input, output, session) {
         result$arima <- NULL
     })
     
+    output$tabYahoo <- renderTable({
+        matchTicker(input)
+    }, bordered = T, spacing = "xs", striped = T, width = "100%")
+    
+    output$boxYahoo <- renderUI({
+        req(input$ticker != "")
+        box(
+            title = "Browse tickers",
+            collapsible = T,
+            width = 12,
+            tableOutput("tabYahoo"),
+            footer = footYahoo(input)
+        )
+    })
+    
     output$boxTrain <- renderValueBox({
         req(input$train != "")
         valueBox(
             format(input$date - as.numeric(input$train), "%b %e, %Y"),
             "Start of training",
             icon("cogs"),
-            "orange"
+            "olive"
         )
     })
     
@@ -32,21 +47,23 @@ server <- function (input, output, session) {
     
     observeEvent(input$arima, {
         if (!detectMissing(input, session)) {
-            price <- tickerData(input)
-            training <-
-                (input$date - as.numeric(input$train)):input$date
-            fit <- log(price[date %in% training]$close) %>%
-                auto.arima(stepwise = F, approximation = F)
-            cast <- forecast(fit, h = input$horizon, level = 95)
-            castPlot <- arimaPlot(input, price, cast) %>%
-                ggplotly(dynamicTicks = T) %>% layout(font = plotFont)
-            castCalc <- arimaCalc(cast)
-            result$arima <- tabBox(
-                title = "Forecast",
-                tabPanel("Plot", castPlot),
-                tabPanel("P/L Calculator", castCalc),
-                width = 12
-            )
+            if (checkTicker(input, session)) {
+                price <- tickerData(input)
+                training <-
+                    (input$date - as.numeric(input$train)):input$date
+                fit <- log(price[date %in% training]$close) %>%
+                    auto.arima(stepwise = F, approximation = F)
+                cast <- forecast(fit, h = input$horizon, level = 95)
+                castPlot <- arimaPlot(input, price, cast) %>%
+                    ggplotly(dynamicTicks = T) %>% layout(font = plotFont)
+                castCalc <- arimaCalc(cast)
+                result$arima <- tabBox(
+                    title = toupper(input$ticker),
+                    tabPanel("Forecast", castPlot),
+                    tabPanel("P/L Calculator", castCalc),
+                    width = 12
+                )
+            }
         }
     })
     
