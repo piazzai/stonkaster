@@ -13,7 +13,7 @@ menuArima <- menuItem(
         "MM d, yyyy",
         weekstart = 1,
         daysofweekdisabled = c(0, 6)
-    ), 
+    ),
     selectizeInput("train", "Training period", trainMenu()),
     selectizeInput("horizon", "Time horizon", horizonMenu()),
     div(
@@ -34,10 +34,14 @@ body <-
             valueBoxOutput("boxHorizon", width = 6)
         ),
         fluidRow(uiOutput("boxResult")),
-        fluidRow(uiOutput("boxSearch")),
+        fluidRow(uiOutput("boxBrowse")),
         tags$head(
-            tags$link(rel = "stylesheet", type = "text/css", href = googleApi(font)),
-            tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+            tags$link(
+                rel = "stylesheet",
+                type = "text/css",
+                href = googleApi(font)
+            ),
+            tags$link(rel = "stylesheet", type = "text/css", href = "custom.min.css")
         )
     )
 
