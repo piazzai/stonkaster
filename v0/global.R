@@ -15,7 +15,7 @@ library(plotly)
 site <-
   list(
     title = "Stonkaster",
-    version = "v0.3.1",
+    version = "v0.3.2",
     url = "https://piazzai.shinyapps.io/stonkaster",
     repo = "https://github.com/piazzai/stonkaster",
     license = "https://github.com/piazzai/stonkaster/blob/master/LICENSE"
@@ -261,8 +261,10 @@ arimaMod <- function(x, y) {
       textSet$arima[8],
       paste0(as.character(y) %>% str_squish(), ".")
     ),
-    a(href = "https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average",
+    a(
+      href = "https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average",
       shiny::icon("question-circle"),
-      "What does this mean?")
+      HTML("&nbsp;What does this mean?")
+    )
   )
 }
