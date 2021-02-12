@@ -1,10 +1,9 @@
 server <- function (input, output, session) {
-    font_add_google("Fira Sans", family = "fira")
     result <- reactiveValues(arima = NULL)
     
     observeEvent(input$reset, {
         updateTextInput(session, "ticker", value = "")
-        updateDateInput(session, "date", value = dateDefault())
+        updateDateInput(session, "date", value = dateSet$default)
         updateSelectInput(session, "train", selected = "")
         updateSelectInput(session, "horizon", selected = "")
         result$arima <- NULL
@@ -18,6 +17,7 @@ server <- function (input, output, session) {
         req(input$ticker != "")
         box(
             title = "Browse tickers",
+            status = "primary",
             collapsible = T,
             width = 12,
             tableOutput("tabYahoo"),
@@ -30,7 +30,7 @@ server <- function (input, output, session) {
         valueBox(
             format(input$date - as.numeric(input$train), "%b %e, %Y"),
             "Start of training",
-            icon("cogs"),
+            shiny::icon("cogs"),
             "olive"
         )
     })
@@ -40,30 +40,29 @@ server <- function (input, output, session) {
         valueBox(
             format(input$date + as.numeric(input$horizon), "%b %e, %Y"),
             "End of forecast",
-            icon("low-vision"),
+            shiny::icon("low-vision"),
             "purple"
         )
     })
     
     observeEvent(input$arima, {
-        if (!detectMissing(input, session)) {
-            if (checkTicker(input, session)) {
+        if (!detectBlankInput(input, session)) {
+            if (checkTickerData(input, session)) {
                 price <- tickerData(input)
-                training <-
+                train <-
                     (input$date - as.numeric(input$train)):input$date
-                if (checkData(price, training, session)) {
-                    fit <- log(price[date %in% training]$close) %>%
+                if (checkDataTrain(price, train, session)) {
+                    fit <- log(price[date %in% train]$close) %>%
                         auto.arima(stepwise = F,
                                    approximation = F)
                     cast <-
                         forecast(fit, h = input$horizon, level = 95)
-                    castPlot <- arimaPlot(input, price, cast) %>%
-                        ggplotly(dynamicTicks = T) %>% layout(font = plotFont)
+                    castPlot <- arimaPlot(price, train, cast)
                     castMod <- arimaMod(input, fit)
                     result$arima <- tabBox(
                         title = toupper(input$ticker),
                         tabPanel("Forecast", castPlot),
-                        tabPanel("About", castMod),
+                        tabPanel("Details", castMod),
                         width = 12
                     )
                 }
