@@ -23,7 +23,8 @@ site <-
 
 author <-
   list(name = "Michele Piazzai",
-       url = "https://piazzai.github.io")
+       url = "https://piazzai.github.io",
+       email = "michele.piazzai@uc3m.es")
 
 font <- list(name = "Fira Sans", weights = c(400, 900))
 
@@ -89,20 +90,14 @@ authorInfo <-
       textSet$infobox[1],
       a(href = author$url, author$name),
       textSet$infobox[2]
-    ), h5(
-      a(
-        href = site$repo,
-        shiny::icon("github"),
-        HTML("&nbsp;"),
-        str_remove(site$repo, "https://")
-      )
-    ))
+    ), h5(a(href = site$url,
+            site$url)))
   )
 
 sidebarSitePanel <-
   div(class = "site-panel",
       p(a(
-        href = site$url, paste(site$title, site$version)
+        href = site$repo, paste(site$title, site$version)
       ),
       br(),
       h5(em(textSet$disclaimer))),
@@ -182,6 +177,7 @@ matchTicker <- function (x) {
     html_attr("data-symbol")
   c2 <- td[grepl("col1", td)] %>% cleanCell()
   c3 <- td[grepl("col4", td)] %>% cleanCell()
+  c3 <- ifelse(c3 == "CRYPTOCURRENCY", "Cryptocurrency", c3)
   c4 <- td[grepl("col5", td)] %>% cleanCell()
   data.table(
     Ticker = c1,
@@ -264,7 +260,7 @@ arimaMod <- function(x, y) {
     a(
       href = "https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average",
       shiny::icon("question-circle"),
-      HTML("&nbsp;What does this mean?")
+      HTML("What does this mean?")
     )
   )
 }
