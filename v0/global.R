@@ -15,7 +15,7 @@ library(plotly)
 site <-
   list(
     title = "Stonkaster",
-    version = "v0.3.2",
+    version = "v0.3.3",
     url = "https://piazzai.shinyapps.io/stonkaster",
     repo = "https://github.com/piazzai/stonkaster",
     license = "https://github.com/piazzai/stonkaster/blob/master/LICENSE"
@@ -23,21 +23,19 @@ site <-
 
 author <-
   list(name = "Michele Piazzai",
-       url = "https://piazzai.github.io",
-       email = "michele.piazzai@uc3m.es")
+       url = "https://piazzai.github.io")
 
 font <- list(name = "Fira Sans", weights = c(400, 900))
 
 textSet <-
   list(
-    infobox = c("Stonkaster is a free app developed by",
-                "and hosted by RStudio."),
+    infobox = c("Stonkaster is a Shiny app developed by", "Code is available at:"),
     disclaimer = "This is an educational tool. Forecasts do not represent financial advice.",
     msgBlankTicker = "You must provide a ticker.",
     msgBlankTrain = "You must provide a training period.",
     msgBlankHorizon = "You must provide a time horizon.",
-    msgNoTickerData = "No data exists for this ticker.",
-    msgNoDataTrain = "No data exists for this ticker during the training period.",
+    msgNoTicker = "This ticker cannot be found.",
+    msgNoTrain = "No data exists during the training period.",
     arima = c(
       "AutoARIMA is an algorithm written by",
       "Rob Hyndman",
@@ -88,16 +86,21 @@ authorInfo <-
     icon = shiny::icon("info"),
     headerText = p(h5(
       textSet$infobox[1],
-      a(href = author$url, author$name),
+      a(href = author$url, paste0(author$name, ".")),
       textSet$infobox[2]
-    ), h5(a(href = site$url,
-            site$url)))
+    ), h5(
+      a(
+        href = site$repo,
+        shiny::icon("github"),
+        str_replace(site$repo, "https://", "&nbsp;") %>% HTML()
+      )
+    ))
   )
 
 sidebarSitePanel <-
   div(class = "site-panel",
       p(a(
-        href = site$repo, paste(site$title, site$version)
+        href = site$url, paste(site$title, site$version)
       ),
       br(),
       h5(em(textSet$disclaimer))),
@@ -121,41 +124,76 @@ googleApi <- function (x) {
 
 # Warnings
 
-detectBlankInput <- function (x, y) {
+checkInput <- function (x) {
   if (x$ticker == "") {
-    y$sendCustomMessage(type = "alert", message = textSet$msgBlankTicker)
-    return(T)
+    showModal(
+      modalDialog(
+        textSet$msgBlankTicker,
+        title = "Error",
+        size = "l",
+        footer = NULL,
+        easyClose = T
+      )
+    )
+    return(F)
   } else {
-    if (x$train == "") {
-      y$sendCustomMessage(type = "alert", message = textSet$msgBlankTrain)
-      return(T)
+    t <- try(getSymbols(
+      x$ticker,
+      from = dateSet$min,
+      to = dateSet$max,
+      auto.assign = F
+    ))
+    if ("try-error" %in% class(t)) {
+      showModal(
+        modalDialog(
+          textSet$msgNoTicker,
+          title = "Error",
+          size = "l",
+          footer = NULL,
+          easyClose = T
+        )
+      )
+      return(F)
     } else {
-      if (x$horizon == "") {
-        y$sendCustomMessage(type = "alert", message = textSet$msgBlankHorizon)
-        return(T)
-      } else
+      if (x$train == "") {
+        showModal(
+          modalDialog(
+            textSet$msgBlankTrain,
+            title = "Error",
+            size = "l",
+            footer = NULL,
+            easyClose = T
+          )
+        )
         return(F)
+      } else {
+        if (x$horizon == "") {
+          showModal(
+            modalDialog(
+              textSet$msgBlankHorizon,
+              title = "Error",
+              size = "l",
+              footer = NULL,
+              easyClose = T
+            )
+          )
+          return(F)
+        } else
+          return(T)
+      }
     }
   }
 }
 
-checkTickerData <- function (x, y) {
-  t <- try(getSymbols(
-    x$ticker,
-    from = dateSet$min,
-    to = dateSet$max,
-    auto.assign = F
-  ))
-  if ("try-error" %in% class(t)) {
-    y$sendCustomMessage(type = "alert", message = textSet$msgNoTickerData)
-    return(F)
-  } else
-    return(T)
-}
-
-checkDataTrain <- function (x, y, z) {
+checkData <- function (x, y) {
   if (nrow(x[date %in% y]) < 2) {
-    z$sendCustomMessage(type = "alert", message = textSet$msgNoDataTrain)
+    showModal(modalDialog(
+      textSet$msgNoTrain,
+      title = "Error",
+      size = "l",
+      footer = NULL,
+      easyClose = T
+    ))
     return(F)
   } else
     return(T)

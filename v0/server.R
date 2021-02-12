@@ -46,26 +46,30 @@ server <- function (input, output, session) {
     })
     
     observeEvent(input$arima, {
-        if (!detectBlankInput(input, session)) {
-            if (checkTickerData(input, session)) {
-                price <- tickerData(input)
-                train <-
-                    (input$date - as.numeric(input$train)):input$date
-                if (checkDataTrain(price, train, session)) {
-                    fit <- log(price[date %in% train]$close) %>%
-                        auto.arima(stepwise = F,
-                                   approximation = F)
-                    cast <-
-                        forecast(fit, h = input$horizon, level = 95)
-                    castPlot <- arimaPlot(price, train, cast)
-                    castMod <- arimaMod(input, fit)
-                    result$arima <- tabBox(
-                        title = toupper(input$ticker),
-                        tabPanel("Forecast", castPlot),
-                        tabPanel("Details", castMod),
-                        width = 12
-                    )
-                }
+        if (checkInput(input)) {
+            price <- tickerData(input)
+            train <-
+                (input$date - as.numeric(input$train)):input$date
+            if (checkData(price, train)) {
+                showModal(modalDialog(
+                    "Calculating...",
+                    size = "l",
+                    footer = NULL
+                ))
+                fit <- log(price[date %in% train]$close) %>%
+                    auto.arima(stepwise = F,
+                               approximation = F)
+                cast <-
+                    forecast(fit, h = input$horizon, level = 95)
+                castPlot <- arimaPlot(price, train, cast)
+                castMod <- arimaMod(input, fit)
+                result$arima <- tabBox(
+                    title = toupper(input$ticker),
+                    tabPanel("Forecast", castPlot),
+                    tabPanel("Details", castMod),
+                    width = 12
+                )
+                removeModal()
             }
         }
     })
