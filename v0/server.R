@@ -9,19 +9,18 @@ server <- function (input, output, session) {
         result$arima <- NULL
     })
     
-    output$tabSearch <- renderTable({
+    output$tabBrowse <- renderTable({
         matchTicker(input)
-    }, bordered = T, spacing = "xs", striped = T, width = "100%")
+    }, spacing = "xs", striped = T, width = "100%")
     
-    output$boxSearch <- renderUI({
+    output$boxBrowse <- renderUI({
         req(input$ticker != "")
         box(
             title = "Similar tickers",
             status = "primary",
             collapsible = T,
             width = 12,
-            tableOutput("tabSearch"),
-            footer = yahooLink(input)
+            tableOutput("tabBrowse")
         )
     })
     
