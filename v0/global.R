@@ -31,9 +31,9 @@ textSet <-
   list(
     infobox = c("Stonkaster is a Shiny app developed by", "Code is available at:"),
     disclaimer = "This is an educational tool. Forecasts do not represent financial advice.",
-    msgBlankTicker = "You must provide a ticker.",
-    msgBlankTrain = "You must provide a training period.",
-    msgBlankHorizon = "You must provide a time horizon.",
+    msgBlankTicker = "You must input a ticker.",
+    msgBlankTrain = "You must input a training period.",
+    msgBlankHorizon = "You must input a time horizon.",
     msgNoTicker = "This ticker cannot be found.",
     msgNoTrain = "No data exists during the training period.",
     arima = c(
@@ -41,7 +41,8 @@ textSet <-
       "Rob Hyndman",
       "that automatically fits an",
       "autoregressive integrated moving average",
-      "(ARIMA) model to a time series. To explain the price evolution of",
+      "(ARIMA) model to a time series.",
+      "To explain the price evolution of",
       "between",
       "and",
       "the algorithm selected a model"
@@ -122,7 +123,7 @@ googleApi <- function (x) {
   )
 }
 
-# Warnings
+# Messages
 
 checkInput <- function (x) {
   if (x$ticker == "") {
@@ -187,19 +188,21 @@ checkInput <- function (x) {
 
 checkData <- function (x, y) {
   if (nrow(x[date %in% y]) < 2) {
-    showModal(modalDialog(
-      textSet$msgNoTrain,
-      title = "Error",
-      size = "l",
-      footer = NULL,
-      easyClose = T
-    ))
+    showModal(
+      modalDialog(
+        textSet$msgNoTrain,
+        title = "Error",
+        size = "l",
+        footer = NULL,
+        easyClose = T
+      )
+    )
     return(F)
   } else
     return(T)
 }
 
-# Ticker search
+# Ticker matching
 
 cleanCell <- function (x) {
   as.character(x) %>% str_extract(">.+<") %>%
@@ -207,7 +210,7 @@ cleanCell <- function (x) {
     str_replace_all("&amp;", "&")
 }
 
-matchTicker <- function (x) {
+browseTicker <- function (x) {
   tr <- paste0("https://finance.yahoo.com/lookup?s=", x$ticker) %>%
     read_html() %>% html_nodes("tr")
   td <- html_nodes(tr[-1], "td")
@@ -223,14 +226,6 @@ matchTicker <- function (x) {
     Type = c3,
     Exchange = c4
   )
-}
-
-yahooLink <- function (x) {
-  p("If you cannot find a ticker, try",
-    a(
-      "Yahoo Search",
-      href = paste0("https://search.yahoo.com/search?p=", x$ticker)
-    ))
 }
 
 tickerData <- function (x) {
@@ -280,19 +275,20 @@ arimaPlot <- function (x, y, z) {
 
 arimaMod <- function(x, y) {
   div(
-    class = "model-info",
     p(
       textSet$arima[1],
       a(textSet$arima[2], href = "https://robjhyndman.com"),
       textSet$arima[3],
       em(textSet$arima[4]),
       textSet$arima[5],
-      x$ticker,
+      br(),
       textSet$arima[6],
-      format(x$date - as.numeric(x$train), "%B %e, %Y,"),
+      x$ticker,
       textSet$arima[7],
-      format(x$date, "%B %e, %Y,"),
+      format(x$date - as.numeric(x$train), "%B %e, %Y,"),
       textSet$arima[8],
+      format(x$date, "%B %e, %Y,"),
+      textSet$arima[9],
       paste0(as.character(y) %>% str_squish(), ".")
     ),
     a(
