@@ -166,7 +166,7 @@ checkDataTrain <- function (x, y, z) {
     return(T)
 }
 
-# Yahoo search
+# Ticker search
 
 cleanCell <- function (x) {
   as.character(x) %>% str_extract(">.+<") %>%
@@ -191,7 +191,7 @@ matchTicker <- function (x) {
   )
 }
 
-footYahoo <- function (x) {
+yahooLink <- function (x) {
   p("If you cannot find a ticker, try",
     a(
       "Yahoo Search",

@@ -34,7 +34,7 @@ body <-
             valueBoxOutput("boxHorizon", width = 6)
         ),
         fluidRow(uiOutput("boxResult")),
-        fluidRow(uiOutput("boxYahoo")),
+        fluidRow(uiOutput("boxSearch")),
         tags$head(
             tags$link(rel = "stylesheet", type = "text/css", href = googleApi(font)),
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
