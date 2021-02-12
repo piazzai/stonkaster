@@ -3,7 +3,6 @@ library(shinydashboard)
 library(shinyjs)
 library(dplyr)
 library(data.table)
-library(showtext)
 library(rvest)
 library(stringr)
 library(quantmod)
@@ -16,7 +15,7 @@ library(plotly)
 site <-
   list(
     title = "Stonkaster",
-    version = "v0.3.0",
+    version = "v0.3.1",
     url = "https://piazzai.shinyapps.io/stonkaster",
     repo = "https://github.com/piazzai/stonkaster",
     license = "https://github.com/piazzai/stonkaster/blob/master/LICENSE"
@@ -30,7 +29,8 @@ font <- list(name = "Fira Sans", weights = c(400, 900))
 
 textSet <-
   list(
-    author = c("Stonkaster is a free app developed by", "and hosted by RStudio."),
+    infobox = c("Stonkaster is a free app developed by",
+                "and hosted by RStudio."),
     disclaimer = "This is an educational tool. Forecasts do not represent financial advice.",
     msgBlankTicker = "You must provide a ticker.",
     msgBlankTrain = "You must provide a training period.",
@@ -38,7 +38,7 @@ textSet <-
     msgNoTickerData = "No data exists for this ticker.",
     msgNoDataTrain = "No data exists for this ticker during the training period.",
     arima = c(
-      "AutoArima is an algorithm written by",
+      "AutoARIMA is an algorithm written by",
       "Rob Hyndman",
       "that automatically fits an",
       "autoregressive integrated moving average",
@@ -86,9 +86,9 @@ authorInfo <-
     badgeStatus = NULL,
     icon = shiny::icon("info"),
     headerText = p(h5(
-      textSet$author[1],
+      textSet$infobox[1],
       a(href = author$url, author$name),
-      textSet$author[2]
+      textSet$infobox[2]
     ), h5(
       a(
         href = site$repo,
