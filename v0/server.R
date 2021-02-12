@@ -10,7 +10,7 @@ server <- function (input, output, session) {
     })
     
     output$tabBrowse <- renderTable({
-        matchTicker(input)
+        browseTicker(input)
     }, spacing = "xs", striped = T, width = "100%")
     
     output$boxBrowse <- renderUI({
