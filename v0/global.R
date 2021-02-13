@@ -15,7 +15,7 @@ library(plotly)
 site <-
   list(
     title = "Stonkaster",
-    version = "v0.3.3",
+    version = "v0.3.4",
     url = "https://piazzai.shinyapps.io/stonkaster",
     repo = "https://github.com/piazzai/stonkaster",
     license = "https://github.com/piazzai/stonkaster/blob/master/LICENSE"
@@ -85,17 +85,20 @@ authorInfo <-
     type = "messages",
     badgeStatus = NULL,
     icon = shiny::icon("info"),
-    headerText = p(h5(
-      textSet$infobox[1],
-      a(href = author$url, paste0(author$name, ".")),
-      textSet$infobox[2]
-    ), h5(
-      a(
-        href = site$repo,
+    headerText = p(
+      h5(
+        textSet$infobox[1],
+        a(href = author$url, paste0(author$name, ".")),
+        textSet$infobox[2]
+      ),
+      h5(
         shiny::icon("github"),
-        str_replace(site$repo, "https://", "&nbsp;") %>% HTML()
+        a(
+          href = site$repo,
+          str_replace(site$repo, "https://", "&nbsp;") %>% HTML()
+        )
       )
-    ))
+    )
   )
 
 sidebarSitePanel <-
@@ -258,7 +261,7 @@ arimaPlot <- function (x, y, z) {
                )
   colnames(ts1)[-1] <-
     c("Price", "Lower 95% CI", "Upper 95% CI")
-  ts2 <- tail(x[date <= tail(y, 1)], nrow(ts1)) %>%
+  ts2 <- tail(x[date <= tail(y, 1)], nrow(ts1) * 3) %>%
     rbind(x[date %in% ts1$Date]) %>%
     distinct() %>% select(Date = date, Price = close)
   p <- ggplot() +
@@ -283,18 +286,15 @@ arimaMod <- function(x, y) {
       textSet$arima[5],
       br(),
       textSet$arima[6],
-      x$ticker,
+      toupper(x$ticker),
       textSet$arima[7],
       format(x$date - as.numeric(x$train), "%B %e, %Y,"),
       textSet$arima[8],
       format(x$date, "%B %e, %Y,"),
       textSet$arima[9],
-      paste0(as.character(y) %>% str_squish(), ".")
-    ),
-    a(
-      href = "https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average",
-      shiny::icon("question-circle"),
-      HTML("What does this mean?")
+      paste0(as.character(y) %>% str_squish(), "."),
+      a(href = "https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average",
+        shiny::icon("question-circle"))
     )
   )
 }
